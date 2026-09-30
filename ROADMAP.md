@@ -12,16 +12,16 @@ Every ticket implicitly includes: tests, typecheck/lint clean, no dropped-CSS wa
 ## Phase 0 - Foundation and spikes
 
 ### 0.1 Bootstrap
-- [ ] **T-001** Create project from `@ng-native/template`, run it on an Android dev build. Ship a hello screen and a passing test.
-- [ ] **T-002** Tooling: TypeScript strict, ESLint, Prettier, Vitest, npm scripts (`typecheck`, `lint`, `format`, `test`). Deps: T-001
-- [ ] **T-003** Folder structure, path aliases, app shell with native stack routing and lazy feature routes. Deps: T-002
-- [ ] **T-004** Tailwind setup and design tokens from `DESIGN.md` (light/dark, system + override, bundled Inter font). Deps: T-003
-- [ ] **T-008** GitHub Actions CI: install with dependency cache, then `typecheck`, `lint`, `test` on push and pull request. Extend with a Gradle unit-test job for `prisma-audio` once T-006 lands. Deps: T-002
+- [x] **T-001** Create project from `@ng-native/template`, run it on an Android dev build. Ship a hello screen and a passing test.
+- [x] **T-002** Tooling: TypeScript strict, ESLint, Prettier, Vitest, npm scripts (`typecheck`, `lint`, `format`, `test`). Deps: T-001
+- [x] **T-003** Folder structure, path aliases, app shell with native stack routing and lazy feature routes. Deps: T-002
+- [x] **T-004** Tailwind setup and design tokens from `DESIGN.md` (light/dark, system + override, bundled Inter font). Deps: T-003
+- [x] **T-008** GitHub Actions CI: install with dependency cache, then `typecheck`, `lint`, `test` on push and pull request. Extend with a Gradle unit-test job for `prisma-audio` once T-006 lands. Deps: T-002
 
 ### 0.2 Technical spikes (results recorded in `MEMORY.md`)
-- [ ] **T-005** CSS/visual capability spike: gradients, blur, opacity, transforms, absolute layout, icons (SVG vs icon font). Decide fallbacks. Deps: T-004
-- [ ] **T-006** Native module scaffold `prisma-audio` (Expo Modules API), hello-world call and event from Kotlin to Angular. Deps: T-003
-- [ ] **T-007** Gesture/animation spike: draggable scrubber and sheet using Reanimated worklets. Deps: T-004
+- [x] **T-005** CSS/visual capability spike: gradients, blur, opacity, transforms, absolute layout, icons (SVG vs icon font). Decide fallbacks. Deps: T-004
+- [x] **T-006** Native module scaffold `prisma-audio` (Expo Modules API), hello-world call and event from Kotlin to Angular. Deps: T-003
+- [x] **T-007** Gesture/animation spike: draggable scrubber and sheet using Reanimated worklets. Deps: T-004
 
 ---
 

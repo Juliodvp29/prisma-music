@@ -3,10 +3,7 @@
     "name": "prisma-music",
     "slug": "prisma-music",
     "version": "1.0.0",
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "platforms": ["ios", "android"],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -28,6 +25,7 @@
       "router": {
         "root": "src/app"
       }
-    }
+    },
+    "plugins": ["expo-font"]
   }
 }
