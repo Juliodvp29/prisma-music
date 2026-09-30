@@ -6,24 +6,38 @@
   "dependencies": {
     "@angular/common": "^22.0.0",
     "@angular/core": "^22.0.0",
+    "@angular/router": "^22.2.0",
+    "@ng-native/components": "0.1.1",
+    "@ng-native/device": "0.1.1",
+    "@ng-native/expo": "^0.1.1",
+    "@ng-native/fabric": "0.1.1",
+    "@ng-native/metro": "0.1.1",
+    "@ng-native/platform": "0.1.1",
+    "@ng-native/router": "^0.1.1",
+    "@ng-native/tailwind": "^0.1.1",
+    "@tailwindcss/cli": "^4.3.3",
     "expo": "~57.0.20",
+    "expo-font": "~57.0.4",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
-    "@ng-native/components": "0.1.1",
-    "@ng-native/metro": "0.1.1",
-    "@ng-native/fabric": "0.1.1",
-    "@ng-native/platform": "0.1.1",
-    "@ng-native/device": "0.1.1"
+    "react-native-screens": "~4.26.0",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@angular/compiler-cli": "^22.0.0",
     "@babel/core": "^7.29.7",
+    "@eslint/js": "^9.39.5",
+    "@ng-native/testing": "0.1.1",
     "@types/react": "~19.2.2",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.5.0",
+    "prettier": "^3.9.9",
     "typescript": "~6.0.3",
-    "vitest": "^5.0.0",
-    "@ng-native/testing": "0.1.1"
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.0"
   },
   "publishConfig": {
     "access": "public"
@@ -32,7 +46,10 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "typecheck": "ngc -p tsconfig.json --noEmit",
+    "typecheck": "node metro.config.js && ngc -p tsconfig.json --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
     "test": "vitest run"
   },
   "private": true

@@ -1,0 +1,58 @@
+@import 'tailwindcss/theme.css';
+@import 'tailwindcss/utilities.css';
+@import '@ng-native/tailwind/native.css';
+
+@font-face {
+  font-family: Inter;
+  src: url('./fonts/Inter-Regular.otf');
+}
+
+@font-face {
+  font-family: Inter;
+  src: url('./fonts/Inter-Medium.otf');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url('./fonts/Inter-SemiBold.otf');
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url('./fonts/Inter-Bold.otf');
+  font-weight: 700;
+}
+
+@theme {
+  --font-sans: 'Inter';
+
+  --color-background: #f1f1f1;
+  --color-surface: #f6f6f6;
+  --color-surface-elevated: #ffffff;
+  --color-text: #000000;
+  --color-text-secondary: rgba(0, 0, 0, 0.55);
+  --color-text-tertiary: rgba(0, 0, 0, 0.35);
+  --color-separator: rgba(0, 0, 0, 0.08);
+  --color-primary: #192028;
+  --color-on-primary: #ffffff;
+  --color-accent: #192028;
+  --color-brand-sand: #ebddc8;
+  --color-brand-ink: #192028;
+  --color-danger: #e5484d;
+  --color-success: #30a46c;
+}
+
+.dark {
+  --color-background: #0b0f13;
+  --color-surface: #141a20;
+  --color-surface-elevated: #1c242c;
+  --color-text: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.62);
+  --color-text-tertiary: rgba(255, 255, 255, 0.38);
+  --color-separator: rgba(255, 255, 255, 0.1);
+  --color-primary: #ebddc8;
+  --color-on-primary: #192028;
+  --color-accent: #ebddc8;
+}
