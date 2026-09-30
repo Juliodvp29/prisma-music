@@ -65,7 +65,7 @@ modules/prisma-audio/   Name/Function/Events thin module + pure GreetingService;
 - Crossfade needs a dual-player design on Media3; validate gapless first (T-401).
 - Hi-Res and spatial behavior depend on device and output route; needs real-device testing.
 - Gesture/animation approach (T-007) validated against docs only; device validation deferred to T-210/T-211.
-- First CI run (especially `android-unit-tests` with SDK setup) not yet observed green.
+- First CI run of `android-unit-tests` failed in `setup-android@v3` (it installs the obsolete `tools` SDK package); replaced with the runner's preinstalled SDK plus `sdkmanager` platform install. Awaiting a green run after the fix.
 
 ## Environment
 
