@@ -34,8 +34,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       # The ubuntu runner already ships an Android SDK; setup-android@v3 was
       # removed because it installs the obsolete `tools` package and fails.
-      - run: yes | sdkmanager --licenses > /dev/null
-      - run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      # sdkmanager is not on PATH, so it runs from its location in the SDK.
+      - run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
       - run: npx expo prebuild --clean --no-install
       - run: ./gradlew :prisma-audio:testDebugUnitTest --console=plain
         working-directory: android
