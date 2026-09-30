@@ -1,75 +1,130 @@
 # AGENTS.md
 
-This is an Angular app rendering real native iOS and Android views with
-[Angular Native](https://ng-native.com): Angular components on React Native's Fabric renderer,
-inside an Expo app. It is not a web app and not React: there is no DOM and no JSX.
+Rules for any AI agent working in this repository. Keep this file short; details live in the linked docs.
 
-The whole documentation, for reading before a change: https://ng-native.com/llms-full.txt. An
-outline with a line per page: https://ng-native.com/llms.txt.
+## Language
 
-Angular's own rules apply as well: https://angular.dev/assets/context/best-practices.md. Its
-browser-only parts do not: there is no `NgOptimizedImage` (use `<image>`), and no AXE or ARIA
-(accessibility is the props below). Where the two disagree, this file wins.
+- Talk to the user (Julio) **always in Spanish**.
+- Everything else is **English**: code, identifiers, comments, tests, commit messages, docs, UI strings.
+
+## Project
+
+**Prisma Music** is a personal music player for Android (iOS later), built with **Angular Native** (alpha) on Expo.
+Plays local files only. No backend, no accounts, no network required.
+A remote library (Supabase or a custom backend) may be added in the future, so keep the design source-agnostic:
+tracks use UUIDs and a generic `uri`, and sources sit behind a `TrackSource` interface. Do not build any remote
+functionality until a ticket asks for it.
+
+Core goals: fluid UI, background playback with native media controls, gapless/crossfade, EQ, Hi-Res/spatial audio,
+synced lyrics, playlists, smart shuffle, home-screen widgets, dynamic UI colors from album art.
+
+Read before working: `MEMORY.md` (current state) -> `ROADMAP.md` (tickets) -> `DESIGN.md` (any UI work).
+
+Framework docs, for reading before a change: https://ng-native.com/llms-full.txt (outline: https://ng-native.com/llms.txt).
+Angular's own best practices apply too: https://angular.dev/assets/context/best-practices.md, except its browser-only
+parts. Where they disagree, this file wins.
+
+## Stack
+
+- Angular 22 (latest APIs) + `@ng-native/*` (components, platform, router, tailwind, testing, device). Docs: https://ng-native.com
+- Expo (dev build, never Expo Go), Metro, TypeScript strict, Tailwind via `@ng-native/tailwind`
+- Vitest + `@ng-native/testing` for TS; JUnit for Kotlin
+- Native audio: custom **Expo Modules API** module in `modules/prisma-audio` (Kotlin, Media3 ExoPlayer + MediaSession; Swift later)
+- Persistence: `expo-sqlite`. Settings: small key-value store
+- Windows + IntelliJ IDEA. Use cross-platform commands (no bash-only syntax in scripts)
+- CI/CD: GitHub Actions (`.github/workflows/`)
+
+## Architecture
+
+```
+src/app/
+  core/       singleton services: playback state, library repository, settings, theme
+  features/   library/ player/ playlists/ lyrics/ equalizer/ settings/  (routed, lazy-loaded)
+  shared/     ui/ (design-system components), utils/, models/
+modules/prisma-audio/   native audio module (android/, ios/, src/)
+plugins/                Expo config plugins (widgets, manifest)
+```
+
+- Layers: UI component -> feature service/store -> core service -> native bridge. A layer only calls the one below it.
+- The **native player is the source of truth** for playback. Angular mirrors it into signals via module events.
+- Only `core/playback/native-audio.ts` may import `prisma-audio`. Everything else uses the `PlaybackService`.
+- Feature folders never import from each other; shared code goes in `core/` or `shared/`.
 
 ## Commands
 
-```sh
-npm start           # Metro; press i or a for a simulator, or scan the QR code with Expo Go
-npm run ios         # the iOS simulator
-npm run android     # the Android emulator
-npm test            # Vitest, in Node against a fake native layer: no simulator needed
+```
+npm start                       # Metro; open the installed dev build (never Expo Go)
+npm run android                 # expo run:android (dev build)
+npm test                        # Vitest in Node against a fake native layer, no emulator needed
 npm run typecheck
+npm run lint | format           # added in T-002
+npx expo prebuild --clean       # regenerate native folders (never edit them by hand)
+cd modules/prisma-audio/android && ./gradlew test   # Kotlin tests
 ```
 
-`src/main.ts` mounts the root component, `src/app/app.ts`. Run `npm test` and `npm run typecheck` after a
-change; both are fast.
+`src/main.ts` mounts the root component `src/app/app.ts`. Run `npm test` and `npm run typecheck` after every change;
+both are fast.
+CI runs `typecheck`, `lint` and `test` on every push and pull request on Ubuntu runners, so these commands must stay
+headless, deterministic and cross-platform. A ticket is not done while CI would fail.
 
-## Rules that are easy to get wrong
+## Ticket workflow (mandatory)
 
-- **Element names are lowercase:** `<view>`, `<text>`, `<pressable>`, `<scroll-view>`,
-  `<text-input>`, `<image>`, `<switch>`, `<safe-area-view>`, `<virtual-list>`, `<modal>`. Each is
-  imported from `@ng-native/components` into the component's `imports`, like any Angular
-  component: `imports: [View, Text]`. `<View>` compiles to an empty template, and an element used
-  without its import renders as a plain view.
-- **There is no DOM.** No `document`, no `window`, no `<div>`, `<span>`, `<button>` or `<input>`,
-  no `@angular/platform-browser`, and no `@angular/animations`. Use the native elements above.
-- **Text only renders inside `<text>`.** `<view>Hello</view>` compiles and shows nothing.
-- **Events are native:** `(press)` on `<pressable>`, not `(click)`; `[(value)]` or `(changeText)` on
-  `<text-input>`; `(scroll)`, `(layout)`. A pressable text is `<text pressable (press)="...">`.
-- **Signals, zoneless, AOT.** State is signals and `computed()`; there is no zone.js, so nothing
-  updates from a plain field changing outside a signal or an event.
-- **No backticks inside an inline template**, even in an HTML comment: they end the template string
-  and the build fails with a misleading parse error.
-- **Accessibility is props:** `accessibilityRole="button"`, `accessibilityLabel`,
-  `[accessibilityState]`. Screen readers and the testing library's `getByRole` both read them.
+1. Read `MEMORY.md` and the ticket in `ROADMAP.md`. Ask if anything is ambiguous.
+2. **Present a plan first and stop.** Files to touch, approach, tests, risks. Wait for explicit approval before writing code.
+3. Implement in small steps. **Always add tests** (services, pure logic, components; Kotlin unit tests for native logic).
+4. **Always verify**: run typecheck, lint, tests, and a bundle/build. For native or UI/audio behavior you cannot observe,
+   say so and give Julio a short manual checklist. Never claim something works unless you ran it.
+5. Update the ticket checkbox in `ROADMAP.md` and rewrite the affected parts of `MEMORY.md` (concise, no history dumps).
+6. Finish with: what was implemented, files changed, tests/checks run and results, manual checks for Julio, and a
+   **suggested commit message** (Conventional Commits, e.g. `feat(player): add mini player progress bar`).
+   **Never run `git commit`, `git push` or change git config.** Julio commits.
 
-## Styling
+## Code conventions
 
-- `[style]` takes a React Native style object: camelCase keys, numbers in points
-  (`{ padding: 16, backgroundColor: '#fff' }`).
-- A component's `styles` is real CSS, compiled at build time: type, class, id and attribute
-  selectors, combinators, `:host`, `@media`, custom properties, transitions and `@keyframes`.
-  Grid, float, `::before`/`::after`, `:hover` and `:focus-visible` are dropped with a build
-  warning naming the file, line and reason - lay out with flexbox, and drive a hover or focus look
-  from a bound attribute. Everything is `display: flex`
-  with `flex-direction: column` by default, as in React Native.
-- Tailwind v4 works through `@ng-native/tailwind`, with `ios:`, `android:` and `dark:` variants.
+- TypeScript strict. No `any` (use `unknown` + narrowing). No non-null `!` without a reason. Prefer `readonly`, `const`.
+- Standalone components only. `input()`, `output()`, `model()`, `inject()`, `computed()`, signals-first; `effect()` sparingly.
+- New control flow (`@if`, `@for` with `track`, `@switch`, `@defer`). Signal Forms for forms. RxJS only when a stream is truly needed.
+- Small components; one responsibility; presentational components get data via inputs. Files kebab-case, `app-` selector prefix.
+- Errors are handled explicitly at boundaries (native bridge, DB, file access). No empty `catch`.
+- Comments: English, only for non-obvious *why*. Impersonal and timeless. **Never** first person ("I", "we"), TODO notes
+  addressed to agents, references to `AGENTS.md`/`ROADMAP.md`/tickets, or narration of what code does.
+- No dead code, no commented-out code, no `console.log` left behind.
 
-## Lists, navigation, forms
+## Angular Native rules
 
-- A long list is `<virtual-list>`: `@for (row of list.window(); track row.slot)` recycles rows as
-  they scroll. `<scroll-view>` renders everything, so keep it for short content.
-- Navigation is `@angular/router` on native stacks and tabs: `provideNativeRouter(routes)` from
-  `@ng-native/router` in `mount`'s `providers`, and `<native-stack-outlet />` in a template. Add
-  `withComponentInputBinding()` from `@angular/router` for route params to arrive as inputs, in
-  tests too.
-- Forms are Signal Forms (`@angular/forms/signals`), with `[formField]` on `<text-input>` and
-  `<switch>`.
-- HTTP needs `provideNativeHttpClient()` from `@ng-native/platform/http`, not `provideHttpClient()`.
+This is an Angular app rendering real native views (Fabric, inside Expo). It is not a web app and not React: no DOM, no JSX.
 
-## Tests
+- **Signals, zoneless, AOT.** State lives in signals and `computed()`. There is no zone.js, so a plain field change outside a signal or an event does not update the UI.
+- **Element names are lowercase:** `<view>`, `<text>`, `<pressable>`, `<scroll-view>`, `<text-input>`, `<image>`, `<switch>`, `<safe-area-view>`, `<virtual-list>`, `<modal>`. Import each from `@ng-native/components` into `imports`. `<View>` compiles to an empty template; a missing import renders a plain view.
+- **No DOM:** no `document`, `window`, `<div>`, `<span>`, `<button>`, `<input>`, `@angular/platform-browser`, `@angular/animations`, `NgOptimizedImage` (use `<image>`).
+- **Text only renders inside `<text>`.**
+- **Events are native:** `(press)` not `(click)`; `(changeText)` or `[(value)]` on `<text-input>`; `(scroll)`, `(layout)`. Pressable text: `<text pressable (press)="...">`.
+- **Accessibility is props:** `accessibilityRole`, `accessibilityLabel`, `[accessibilityState]`.
+- **No backticks inside an inline template**, even in comments; they break the build with a misleading error.
+- **Styling:** `[style]` takes a React Native style object (camelCase, numbers in points). A component's `styles` is real CSS compiled at build time; grid, float, `::before`/`::after`, `:hover` and `:focus-visible` are dropped with a warning, so use flexbox (column by default). Tailwind v4 via `@ng-native/tailwind` with `ios:`, `android:`, `dark:`. Tokens come from `DESIGN.md`. Build warnings about dropped CSS are failures: fix them.
+- **Animations:** CSS transitions and keyframes, `AnimatedStyle`, or Reanimated worklets (import from their own entry points, see docs).
+- **Lists:** long lists use `<virtual-list>` (`@for (row of list.window(); track row.slot)`); `<scroll-view>` only for short content.
+- **Navigation:** `provideNativeRouter(routes)` from `@ng-native/router` in `mount`'s `providers`, `<native-stack-outlet />` in templates, and `withComponentInputBinding()` (in tests too).
+- **Forms:** Signal Forms (`@angular/forms/signals`) with `[formField]`.
+- **HTTP:** only `provideNativeHttpClient()` from `@ng-native/platform/http`, never `provideHttpClient()` (and no network calls without an approved ticket).
+- **Tests:** `render(Component)`, query with `screen.getByRole`, `getByText` or `getByTestId`, act with `userEvent.setup().press(...)` or `.type(...)`, all from `@ng-native/testing`. Write one alongside every change.
+- **Alpha bugs to avoid:** no method shorthand inside decorator metadata (`attach: function () {}`), no template arrow functions that read their parameter (use a component method), always close `@if (...)` and `@let ...;`.
+- Before adding any Expo/React Native library that renders UI, check the Angular Native docs for support.
+- If docs and behavior disagree, stop and tell Julio; record the finding in `MEMORY.md`.
 
-`app.test.ts` shows the shape: `render(Component)`, then query with `screen.getByRole`,
-`getByText` or `getByTestId` (which matches `nativeID` and `testID`), and act with
-`userEvent.setup().press(...)` or `.type(...)`, all from `@ng-native/testing`. Tests run in Node
-with no simulator, so write one alongside a change.
+## Do not
+
+- Do not edit generated `android/` or `ios/` folders; native code lives in `modules/` and `plugins/`.
+- Do not touch `.agents/skills/` (managed by Julio), and do not edit `AGENTS.md` or `DESIGN.md` without asking.
+- Do not edit `.github/workflows/` without an approved ticket. Never commit keystores, `.env` files, tokens or credentials;
+  signing keys and secrets live in GitHub Secrets only.
+- Do not add or upgrade dependencies without asking (Angular Native is alpha; versions are pinned deliberately).
+- Do not add a backend, analytics, telemetry, ads, or network calls without an approved ticket.
+- Do not hardcode colors, spacing, or font sizes; use design tokens.
+- Do not expand scope beyond the ticket; note extra ideas in the final summary instead.
+- Do not delete or overwrite the user's music files. The app only reads them.
+
+## Quality bar
+
+Playback must never glitch the UI thread: no heavy work on the JS thread during playback, scanning is batched and
+cancellable, lists are virtualized, artwork is downsampled and cached. Touch targets are at least 48dp.
