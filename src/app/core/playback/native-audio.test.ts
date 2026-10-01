@@ -33,8 +33,15 @@ function fakeNative(): {
   let emit: (event: PrismaAudioGreeting) => void = () => {};
   const module: NativePrismaAudio = {
     hello: () => 'Hello from PrismaAudio',
-    addListener: (_event, listener) => {
-      emit = listener;
+    scanLibrary: async () => [],
+    cancelScan: () => {},
+    extractMetadata: async () => {
+      throw new Error('no metadata in this test');
+    },
+    addListener: (event, listener) => {
+      if (event === 'onGreeting') {
+        emit = listener as (event: PrismaAudioGreeting) => void;
+      }
       return { remove: () => {} };
     },
   };

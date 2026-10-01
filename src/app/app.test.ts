@@ -25,7 +25,7 @@ test('redirects to the library page on launch', async () => {
     providers: [provideNativeRouter(routes, withComponentInputBinding())],
   });
 
-  expect(await screen.findByText('Library')).toBeTruthy();
+  expect(await screen.findByText('Biblioteca')).toBeTruthy();
 });
 
 test('pushes the settings screen when its link is pressed', async () => {
@@ -37,7 +37,7 @@ test('pushes the settings screen when its link is pressed', async () => {
     .setup()
     .press(screen.getByRole('button', { name: 'Go to settings' }));
 
-  expect(await screen.findByText('Settings')).toBeTruthy();
+  expect(await screen.findByText('Ajustes')).toBeTruthy();
 });
 
 test('lazy-loads every feature route', async () => {

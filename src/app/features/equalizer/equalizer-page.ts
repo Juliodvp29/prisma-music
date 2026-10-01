@@ -6,7 +6,7 @@ import { Text, View } from '@ng-native/components';
   selector: 'app-equalizer-page',
   template: `
     <view class="flex-1 justify-center bg-background p-5">
-      <text class="font-sans text-2xl font-bold text-text">Equalizer</text>
+      <text class="font-sans text-2xl font-bold text-text">Ecualizador</text>
     </view>
   `,
 })
