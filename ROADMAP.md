@@ -28,9 +28,9 @@ Every ticket implicitly includes: tests, typecheck/lint clean, no dropped-CSS wa
 ## Phase 1 - Local library
 
 ### 1.1 Access and scanning
-- [ ] **T-101** Storage/media permissions flow with clear denied and permanently-denied states. Deps: T-003
-- [ ] **T-102** Native scanner over MediaStore (batched, cancellable, progress events), exposed as the local implementation of a `TrackSource` interface. Deps: T-006, T-101
-- [ ] **T-103** Metadata extraction: tags, duration, bitrate, sample rate, bit depth, format, embedded artwork (cached, downsampled). Deps: T-102
+- [x] **T-101** Storage/media permissions flow with clear denied and permanently-denied states. Deps: T-003
+- [x] **T-102** Native scanner over MediaStore (batched, cancellable, progress events), exposed as the local implementation of a `TrackSource` interface. Deps: T-006, T-101
+- [x] **T-103** Metadata extraction: tags, duration, bitrate, sample rate, bit depth, format, embedded artwork (cached, downsampled). Deps: T-102
 
 ### 1.2 Persistence
 - [ ] **T-104** SQLite schema and migrations (tracks, albums, artists, playlists, history, settings). Tracks use UUID primary keys, a `source` column (`local` for now) and a generic `uri`, so a remote source can be added later without a schema rewrite. Deps: T-003

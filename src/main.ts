@@ -11,7 +11,7 @@ import {
   registerPlatformComponents,
 } from '@ng-native/fabric';
 import { provideNativeRouter } from '@ng-native/router';
-import { loadFonts, type SheetWithFonts } from '@ng-native/expo/fonts';
+import { loadAsync as loadFontAssets } from 'expo-font';
 import tailwind from '../.angular-native/app.tailwind.js';
 import { routes } from './app/app.routes.ts';
 import { App } from './app/app.ts';
@@ -22,9 +22,18 @@ AppRegistry.registerRunnable(
   'main',
   ({ rootTag }: { rootTag: number | string }) => {
     void (async () => {
-      // The generated sheet carries its `@font-face` list at runtime, but its
-      // declaration only exposes the stylesheet side, so narrow it for the loader.
-      await loadFonts(tailwind as unknown as SheetWithFonts);
+      // The `@font-face` list in the Tailwind entry only carries weight
+      // matching metadata: its sources are unresolved markers no transformer
+      // converts, so register the files directly under the composed names
+      // (`Inter`, `Inter-<weight>`) the engine resolves them by.
+      /* eslint-disable @typescript-eslint/no-require-imports -- static asset requires are Metro's bundling mechanism for fonts; main.ts never runs in Node. */
+      await loadFontAssets({
+        Inter: require('./fonts/Inter-Regular.otf'),
+        'Inter-500': require('./fonts/Inter-Medium.otf'),
+        'Inter-600': require('./fonts/Inter-SemiBold.otf'),
+        'Inter-700': require('./fonts/Inter-Bold.otf'),
+      });
+      /* eslint-enable @typescript-eslint/no-require-imports */
       const app = mount(Number(rootTag), App, getFabricUIManager(), {
         providers: [provideNativeRouter(routes, withComponentInputBinding())],
         // Utility classes from `src/styles.css`, matched against every node.

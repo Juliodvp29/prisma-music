@@ -5,7 +5,7 @@ Rules for any AI agent working in this repository. Keep this file short; details
 ## Language
 
 - Talk to the user (Julio) **always in Spanish**.
-- Everything else is **English**: code, identifiers, comments, tests, commit messages, docs, UI strings.
+- User-facing UI strings are **Spanish**. Everything else is **English**: code, identifiers, comments, tests, commit messages, docs.
 
 ## Project
 
@@ -47,7 +47,7 @@ plugins/                Expo config plugins (widgets, manifest)
 
 - Layers: UI component -> feature service/store -> core service -> native bridge. A layer only calls the one below it.
 - The **native player is the source of truth** for playback. Angular mirrors it into signals via module events.
-- Only `core/playback/native-audio.ts` may import `prisma-audio`. Everything else uses the `PlaybackService`.
+- Only services in `core/` may import `prisma-audio`: `core/playback/native-audio.ts` for playback and `core/library/*` for scanning. Everything else uses the `PlaybackService` or a `TrackSource`.
 - Feature folders never import from each other; shared code goes in `core/` or `shared/`.
 
 ## Commands

@@ -2,6 +2,9 @@
 @import 'tailwindcss/utilities.css';
 @import '@ng-native/tailwind/native.css';
 
+/* Weight matching metadata for the engine. The files themselves load in
+   main.ts: sources here ship as unresolved markers the Tailwind entry
+   never converts to requires. */
 @font-face {
   font-family: Inter;
   src: url('./fonts/Inter-Regular.otf');

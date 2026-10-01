@@ -7,12 +7,13 @@ instead of appending history. Update at the end of every ticket. Detailed scope 
 
 - **Project**: Prisma Music, personal local-file music player for Android, iOS later.
 - **Stack**: Angular 22 + Angular Native (alpha) on Expo dev build, TypeScript strict, Tailwind, Vitest, Kotlin Expo module for audio.
-- **Phase / ticket**: Phase 0 done. Next ticket: **T-101** (Phase 1).
-- **Last updated**: 2026-09-30
+- **Phase / ticket**: Phase 1.1 done. Next ticket: **T-104** (Phase 1.2).
+- **Last updated**: 2026-10-01
 
 ## Done
 
-- Phase 0: bootstrap from `@ng-native/template`; tooling (strict TS, ESLint, Prettier, Vitest, `typecheck`/`lint`/`format`/`test`); folder structure with path aliases and native-stack shell with six lazy feature routes; Tailwind v4 with `DESIGN.md` tokens, system/light/dark `ThemeService`, bundled Inter (Regular/Medium/SemiBold/Bold OTF); CI (`checks` + `android-unit-tests` jobs); `prisma-audio` native scaffold (`hello()` + `onGreeting` event, `GreetingService` + JUnit, `NativeAudio` service with signals); spikes T-005/T-007 recorded below.
+- Phase 0: bootstrap, tooling, structure with aliases and lazy stack routes, Tailwind tokens + ThemeService + Inter, CI with Gradle job, `prisma-audio` scaffold, spikes T-005/T-007.
+- Phase 1.1: media permission flow (`MediaAccessService` with granted/denied/permanently-denied states, `READ_MEDIA_AUDIO` / pre-33 `READ_EXTERNAL_STORAGE`, icons installed); native MediaStore scanner (batched, cancellable, throttled progress) behind `TrackSource`/`LocalTrackSource`; metadata via `MediaMetadataRetriever` + `MediaExtractor` (tags, duration, bitrate, sample rate, channels, mime, artwork downsampled to 512px JPEG in cache) via `LocalMetadataReader`. Only `core/` services import `prisma-audio`. `.gitattributes` enforces LF.
 
 ## In progress
 
@@ -25,7 +26,7 @@ _None._
 - D-03 Custom native audio module with Expo Modules API (Media3 ExoPlayer + MediaSession), not `expo-audio`, because gapless, crossfade, EQ, Hi-Res and spatial audio need engine-level control.
 - D-04 Dev build only; Expo Go cannot run the background service, widgets or the custom module.
 - D-05 The native player owns playback state; Angular mirrors it through signals.
-- D-06 All docs, code, comments, commits in English. Agents reply to the user in Spanish.
+- D-06 All docs, code, comments, commits in English; user-facing UI strings in Spanish. Agents reply to the user in Spanish.
 - D-07 Design based on an Apple Music palette adapted in `DESIGN.md`; Inter font bundled; Dynamic UI colors from artwork.
 - D-08 A remote library (Supabase or custom backend) may be added later. Current work stays local-only, but the model is source-agnostic: UUID track IDs, `source` + generic `uri` columns, scanner behind a `TrackSource` interface, SQLite treated as a local cache. Media3 already plays `https://` URIs, so the player needs no redesign. Free Supabase Storage is small for music; a custom server (e.g. Navidrome) or S3/R2 may fit better.
 - D-09 CI/CD with GitHub Actions: `checks` (`typecheck`, `lint`, `test`) plus `android-unit-tests` (`:prisma-audio:testDebugUnitTest`) on every push and PR; signed release builds later in T-806 (triggered by version tags, publishing an APK to a GitHub Release). Secrets and keystores only in GitHub Secrets. CI uses Node 22.
@@ -34,13 +35,16 @@ _None._
 - D-12 Native bridge pattern: `modules/prisma-audio/src/` exposes the typed module handle only; `core/playback/native-audio.ts` is the sole importer and converts events to signals. Lazy `require('expo')` inside the factory (ESLint override scoped to the bridge). JUnit 4 as test-only dep of the module.
 - D-13 T-005 outcomes: linear/radial gradients via Tailwind supported (no conic); blur is Android-only, always behind `android:` with a flat/scrim fallback on iOS; opacity, translate/scale/rotate transforms and absolute layout supported; skew is iOS-only (avoid); icons via `@ng-native/icons` `NgIcon` + outline `@ng-icons` sets over `react-native-svg` (install deferred to T-107).
 - D-14 T-007 outcomes: scrubber/sheet via `Gesture.Pan` + `sharedValue` + `workletStyle` on the UI thread, `<gesture-root>` at the root, no `this` in worklet callbacks, gesture/reanimated entry-point imports (Node-safe), tests via `gestureOf` + callbacks. Library install (`react-native-gesture-handler`, `react-native-reanimated`, `react-native-worklets`) deferred to T-210/T-211 with a dev-build rebuild.
+- D-15 Permissions: `READ_MEDIA_AUDIO` (API 33+) with `READ_EXTERNAL_STORAGE` fallback below; runtime choice by `Platform.Version`. Icons (`NgIcon` + heroicons outline + `react-native-svg`) installed for empty states; `NgIcon` color bound to the theme accent (no token access in TS).
+- D-16 Scanning: `MediaScanner` reads `IS_MUSIC = 1` rows in ID-ordered pages over `backgroundCoroutineScope` + IO; cancellation via `ScanSession` flag; progress events per batch; bit depth has no reliable Android API, so it is omitted until the Hi-Res path (T-407) needs it.
 
 ## Architecture (current)
 
 ```
 src/app/
-  core/             ThemeService; playback/NativeAudio (signals over prisma-audio)
-  features/         library/ player/ playlists/ lyrics/ equalizer/ settings/ (stub pages, lazy routes)
+  core/             ThemeService; playback/NativeAudio (signals over prisma-audio);
+                    library/ MediaAccessService, TrackSource/LocalTrackSource, TrackMetadata/LocalMetadataReader
+  features/         library/ player/ playlists/ lyrics/ equalizer/ settings/ (library shows permission states; rest stubs, lazy routes)
   shared/           ui/ utils/ models/ (scaffolded, empty)
 modules/prisma-audio/   Name/Function/Events thin module + pure GreetingService; typed TS bridge
 ```
@@ -54,10 +58,12 @@ modules/prisma-audio/   Name/Function/Events thin module + pure GreetingService;
 - `hover:` in Tailwind means pressed state. Font stacks collapse to the first name; bundle and name a single font.
 - CSS `position: sticky/fixed`, grid, `::before/::after` are unsupported. Unsupported CSS is dropped with a build warning.
 - Hot reload keeps state for template/style edits; selector, input, method, or import changes need a full reload.
+- Manifest and native changes (`app.json` permissions, new native modules) need a dev-build rebuild (`npm run android`); Metro reload is not enough, and the app info screen shows no permission until then.
 - TS 6 deprecates `baseUrl` (needed for `paths`); silenced with `"ignoreDeprecations": "6.0"`, revisit on TS 7.
-- The generated `.angular-native/app.tailwind.js` is typed as `StyleSheet` but carries `fonts` at runtime; `main.ts` narrows it with `as unknown as SheetWithFonts` for `loadFonts()` (docs say to pass the generated sheet, types do not align).
+- `@font-face` in the Tailwind entry only carries weight-matching metadata: its sources stay unresolved markers (only the component transformer turns them into `require()`), so `loadFonts(generatedSheet)` throws in expo-font. Fonts load explicitly in `main.ts` with static `require()` under `Inter`/`Inter-<weight>`; verified via `expo export` (4 OTF assets bundled).
 - `@ng-native/testing` tears down TestBed after `render()`: navigate in tests via `nativeRouterLink` presses, not `TestBed.inject(Router)`.
-- Gradle must run under Android Studio's JBR 21 (`JAVA_HOME`), not the default JDK 25. Module tests: `:prisma-audio:testDebugUnitTest` from `android/`.
+- Gradle must run under Android Studio's JBR 21 (`JAVA_HOME`), not the default JDK 25. Module tests: `:prisma-audio:testDebugUnitTest` from `android/`. Expo has `backgroundCoroutineScope`, not `backgroundExecutor`.
+- Remaining `[angular-native] dropped ...` warnings in `typecheck` output come from Tailwind's own utilities, not app code.
 - Remaining `[angular-native] dropped ...` warnings in `typecheck` output come from Tailwind's own utilities, not app code.
 
 ## Open questions / risks
@@ -66,6 +72,7 @@ modules/prisma-audio/   Name/Function/Events thin module + pure GreetingService;
 - Hi-Res and spatial behavior depend on device and output route; needs real-device testing.
 - Gesture/animation approach (T-007) validated against docs only; device validation deferred to T-210/T-211.
 - First CI run of `android-unit-tests` failed in `setup-android@v3` (it installs the obsolete `tools` SDK package); replaced with the runner's preinstalled SDK plus `sdkmanager` platform install. Awaiting a green run after the fix.
+- Scanner/metadata verified with fakes and unit tests only; a real-device scan of an actual music library has not been observed yet.
 
 ## Environment
 
@@ -75,6 +82,6 @@ modules/prisma-audio/   Name/Function/Events thin module + pure GreetingService;
 
 ## Next steps
 
-1. T-101 storage/media permissions flow.
-2. T-102 native scanner over MediaStore behind `TrackSource`.
-3. T-103 metadata extraction.
+1. T-104 SQLite schema and migrations (UUID tracks, `source` + generic `uri`).
+2. T-105 repository services with typed queries.
+3. T-106 incremental rescan and scan status UI.
