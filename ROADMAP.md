@@ -33,9 +33,9 @@ Every ticket implicitly includes: tests, typecheck/lint clean, no dropped-CSS wa
 - [x] **T-103** Metadata extraction: tags, duration, bitrate, sample rate, bit depth, format, embedded artwork (cached, downsampled). Deps: T-102
 
 ### 1.2 Persistence
-- [ ] **T-104** SQLite schema and migrations (tracks, albums, artists, playlists, history, settings). Tracks use UUID primary keys, a `source` column (`local` for now) and a generic `uri`, so a remote source can be added later without a schema rewrite. Deps: T-003
-- [ ] **T-105** Repository services with typed queries and tests. Deps: T-104
-- [ ] **T-106** Incremental rescan (add, change, remove detection) and scan status UI. Deps: T-103, T-105
+- [x] **T-104** SQLite schema and migrations (tracks, albums, artists, playlists, history, settings). Tracks use UUID primary keys, a `source` column (`local` for now) and a generic `uri`, so a remote source can be added later without a schema rewrite. Deps: T-003
+- [x] **T-105** Repository services with typed queries and tests. Deps: T-104
+- [x] **T-106** Incremental rescan (add, change, remove detection) and scan status UI. Deps: T-103, T-105
 
 ### 1.3 Browsing UI
 - [ ] **T-107** Tab shell (Library, Playlists, Search, Settings) with themed navigation. Deps: T-004

@@ -9,6 +9,7 @@ import {
 import { NgIcon } from '@ng-native/icons';
 import { ThemeService } from '../../core/theme.service.ts';
 import { MediaAccessService } from '../../core/library/media-access.service.ts';
+import { ScanService } from '../../core/library/scan.service.ts';
 
 @Component({
   imports: [NgIcon, Pressable, Text, View],
@@ -21,9 +22,64 @@ import { MediaAccessService } from '../../core/library/media-access.service.ts';
       @switch (access.status()) {
         @case ('granted') {
           <text class="font-sans text-2xl font-bold text-text">Biblioteca</text>
-          <text class="font-sans text-base text-text-secondary">
-            Tu música aparecerá aquí.
-          </text>
+          @switch (scanner.state().state) {
+            @case ('scanning') {
+              <text class="font-sans text-base text-text-secondary">
+                Explorando {{ scanned() }} de {{ total() }}…
+              </text>
+              <pressable
+                accessibilityRole="button"
+                class="items-center rounded-full bg-primary p-4"
+                (press)="scanner.cancel()"
+              >
+                <text class="font-sans text-base font-semibold text-on-primary">
+                  Cancelar
+                </text>
+              </pressable>
+            }
+            @case ('done') {
+              <text class="font-sans text-base text-text-secondary">
+                {{ summary() }}
+              </text>
+              <pressable
+                accessibilityRole="button"
+                class="items-center rounded-full bg-primary p-4"
+                (press)="scanner.scan()"
+              >
+                <text class="font-sans text-base font-semibold text-on-primary">
+                  Escanear de nuevo
+                </text>
+              </pressable>
+            }
+            @case ('error') {
+              <text class="font-sans text-base text-text-secondary">
+                {{ errorMessage() }}
+              </text>
+              <pressable
+                accessibilityRole="button"
+                class="items-center rounded-full bg-primary p-4"
+                (press)="scanner.scan()"
+              >
+                <text class="font-sans text-base font-semibold text-on-primary">
+                  Reintentar
+                </text>
+              </pressable>
+            }
+            @default {
+              <text class="font-sans text-base text-text-secondary">
+                Tu música aparecerá aquí.
+              </text>
+              <pressable
+                accessibilityRole="button"
+                class="items-center rounded-full bg-primary p-4"
+                (press)="scanner.scan()"
+              >
+                <text class="font-sans text-base font-semibold text-on-primary">
+                  Escanear
+                </text>
+              </pressable>
+            }
+          }
         }
         @case ('permanently-denied') {
           <ng-icon name="heroCog6Tooth" [size]="48" [color]="iconColor()" />
@@ -84,9 +140,36 @@ import { MediaAccessService } from '../../core/library/media-access.service.ts';
 })
 export class LibraryPage {
   protected readonly access = inject(MediaAccessService);
+  protected readonly scanner = inject(ScanService);
   private readonly theme = inject(ThemeService);
 
   protected iconColor(): string {
     return this.theme.className() === 'dark' ? '#EBDDC8' : '#192028';
+  }
+
+  protected scanned(): number {
+    const state = this.scanner.state();
+    return state.state === 'scanning' ? state.scanned : 0;
+  }
+
+  protected total(): number {
+    const state = this.scanner.state();
+    return state.state === 'scanning' ? state.total : 0;
+  }
+
+  protected summary(): string {
+    const state = this.scanner.state();
+    if (state.state !== 'done') {
+      return '';
+    }
+    if (state.total === 0) {
+      return 'No se encontró música en este dispositivo.';
+    }
+    return `${state.total} canciones · ${state.added} nuevas · ${state.updated} actualizadas · ${state.removed} eliminadas`;
+  }
+
+  protected errorMessage(): string {
+    const state = this.scanner.state();
+    return state.state === 'error' ? state.message : '';
   }
 }

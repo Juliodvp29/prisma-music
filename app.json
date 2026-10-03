@@ -30,6 +30,6 @@
         "root": "src/app"
       }
     },
-    "plugins": ["expo-font"]
+    "plugins": ["expo-font", "expo-sqlite"]
   }
 }

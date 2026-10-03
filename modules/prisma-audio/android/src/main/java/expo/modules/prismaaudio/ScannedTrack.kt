@@ -33,6 +33,8 @@ data class ScannedTrack(
  * instead of a Cursor so the mapping stays unit testable without Android.
  */
 object AudioRowMapper {
+  private const val UNKNOWN = "<unknown>"
+
   fun map(get: (column: String) -> Any?): ScannedTrack {
     val deviceId = (get("id") as? Number)?.toLong() ?: 0L
     val displayName = get("displayName") as? String ?: ""
@@ -41,8 +43,8 @@ object AudioRowMapper {
       uri = "content://media/external/audio/media/$deviceId",
       displayName = displayName,
       title = (get("title") as? String).orEmpty().ifEmpty { displayName },
-      artist = (get("artist") as? String).orEmpty().ifEmpty { "Unknown artist" },
-      album = (get("album") as? String).orEmpty().ifEmpty { "Unknown album" },
+      artist = (get("artist") as? String).orUnknown().ifEmpty { "Unknown artist" },
+      album = (get("album") as? String).orUnknown().ifEmpty { "Unknown album" },
       albumId = (get("albumId") as? Number)?.toLong() ?: 0L,
       durationMs = (get("duration") as? Number)?.toLong() ?: 0L,
       sizeBytes = (get("size") as? Number)?.toLong() ?: 0L,
@@ -50,4 +52,7 @@ object AudioRowMapper {
       mimeType = get("mimeType") as? String ?: "",
     )
   }
+
+  private fun String?.orUnknown(): String =
+    if (this == null || this == UNKNOWN) "" else this
 }

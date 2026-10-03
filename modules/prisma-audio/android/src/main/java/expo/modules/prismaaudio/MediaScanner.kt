@@ -24,8 +24,29 @@ class ScanSession {
 }
 
 /**
- * Reads music files from MediaStore in batches. Row mapping is delegated to
- * [AudioRowMapper]; this class owns only batching, progress and cancellation.
+ * Short column names used by [AudioRowMapper], resolved once per cursor.
+ * Kept separate (and pure) so a wrong key surfaces in unit tests instead
+ * of silently mapping every row to defaults on a device.
+ */
+object CursorColumns {
+  fun indexOf(getColumnIndex: (name: String) -> Int): Map<String, Int> = mapOf(
+    "id" to getColumnIndex(MediaStore.Audio.Media._ID),
+    "displayName" to getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME),
+    "title" to getColumnIndex(MediaStore.Audio.Media.TITLE),
+    "artist" to getColumnIndex(MediaStore.Audio.Media.ARTIST),
+    "album" to getColumnIndex(MediaStore.Audio.Media.ALBUM),
+    "albumId" to getColumnIndex(MediaStore.Audio.Media.ALBUM_ID),
+    "duration" to getColumnIndex(MediaStore.Audio.Media.DURATION),
+    "size" to getColumnIndex(MediaStore.Audio.Media.SIZE),
+    "dateModified" to getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED),
+    "mimeType" to getColumnIndex(MediaStore.Audio.Media.MIME_TYPE),
+  )
+}
+
+/**
+ * Reads music files from MediaStore. Rows stream from one plain query (the
+ * provider rejects SQL clauses such as LIMIT in the sort order); batching
+ * for progress and cancellation happens while iterating.
  */
 class MediaScanner(private val resolver: ContentResolver) {
   private val audioUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -52,31 +73,13 @@ class MediaScanner(private val resolver: ContentResolver) {
 
   fun scan(session: ScanSession, pageSize: Int, onBatch: (scanned: Int) -> Unit): List<ScannedTrack> {
     val tracks = mutableListOf<ScannedTrack>()
-    var offset = 0
-    while (true) {
-      session.throwIfCancelled()
-      val page = readPage(offset, pageSize)
-      if (page.isEmpty()) {
-        break
-      }
-      tracks.addAll(page)
-      session.scanned.addAndGet(page.size)
-      onBatch(session.scanned.get())
-      if (page.size < pageSize) {
-        break
-      }
-      offset += page.size
-    }
-    return tracks
-  }
-
-  private fun readPage(offset: Int, limit: Int): List<ScannedTrack> {
-    val page = mutableListOf<ScannedTrack>()
-    val sort = "${MediaStore.Audio.Media._ID} ASC LIMIT $limit OFFSET $offset"
-    resolver.query(audioUri, projection, "${MediaStore.Audio.Media.IS_MUSIC} = 1", null, sort)?.use { cursor ->
-      val index = projection.associateWith { cursor.getColumnIndex(it) }
+    val size = pageSize.coerceIn(50, 2000)
+    var inBatch = 0
+    resolver.query(audioUri, projection, "${MediaStore.Audio.Media.IS_MUSIC} = 1", null, "${MediaStore.Audio.Media._ID} ASC")?.use { cursor ->
+      val index = CursorColumns.indexOf(cursor::getColumnIndex)
       while (cursor.moveToNext()) {
-        page.add(
+        session.throwIfCancelled()
+        tracks.add(
           AudioRowMapper.map { column ->
             val columnIndex = index[column] ?: -1
             if (columnIndex < 0 || cursor.isNull(columnIndex)) {
@@ -89,8 +92,18 @@ class MediaScanner(private val resolver: ContentResolver) {
             }
           },
         )
+        inBatch += 1
+        if (inBatch >= size) {
+          session.scanned.addAndGet(inBatch)
+          onBatch(session.scanned.get())
+          inBatch = 0
+        }
       }
     }
-    return page
+    if (inBatch > 0) {
+      session.scanned.addAndGet(inBatch)
+      onBatch(session.scanned.get())
+    }
+    return tracks
   }
 }
