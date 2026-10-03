@@ -18,6 +18,7 @@ class AudioRowMapperTest {
       "size" to 4096L,
       "dateModified" to 1700000000L,
       "mimeType" to "audio/mpeg",
+      "folder" to "Music/",
     )
 
     val track = AudioRowMapper.map { row[it] }
@@ -38,6 +39,7 @@ class AudioRowMapperTest {
       "sizeBytes" to 4096L,
       "dateModified" to 1700000000L,
       "mimeType" to "audio/mpeg",
+      "folder" to "Music/",
     ), track.toMap())
   }
 
@@ -51,10 +53,62 @@ class AudioRowMapperTest {
     assertEquals("Unknown album", track.album)
     assertEquals(0L, track.durationMs)
   }
+
+  @Test
+  fun treatsMediaStoreUnknownAsMissing() {
+    val track = AudioRowMapper.map {
+      when (it) {
+        "artist" -> "<unknown>"
+        "album" -> "<unknown>"
+        else -> null
+      }
+    }
+
+    assertEquals("Unknown artist", track.artist)
+    assertEquals("Unknown album", track.album)
+  }
 }
 
-class ScanSessionTest {
+class CursorColumnsTest {
   @Test
+  fun resolvesEveryMapperKey() {
+    val names = listOf(
+      "_id",
+      "_display_name",
+      "title",
+      "artist",
+      "album",
+      "album_id",
+      "duration",
+      "_size",
+      "date_modified",
+      "mime_type",
+      "relative_path",
+    )
+
+    val index = CursorColumns.indexOf { names.indexOf(it) }
+
+    assertEquals(
+      setOf(
+        "id",
+        "displayName",
+        "title",
+        "artist",
+        "album",
+        "albumId",
+        "duration",
+        "size",
+        "dateModified",
+        "mimeType",
+        "folder",
+      ),
+      index.keys,
+    )
+    assertEquals((0..10).toSet(), index.values.toSet())
+  }
+}
+
+class ScanSessionTest {  @Test
   fun cancelStopsTheScan() {
     val session = ScanSession()
 

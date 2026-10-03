@@ -20,6 +20,7 @@ function toScannedTrack(row: NativeScannedTrack): ScannedTrack {
     sizeBytes: row.sizeBytes,
     dateModified: row.dateModified,
     mimeType: row.mimeType,
+    folder: row.folder,
   };
 }
 

@@ -31,6 +31,14 @@
 @theme {
   --font-sans: 'Inter';
 
+  --text-large-title: 34px;
+  --text-title: 22px;
+  --text-headline: 17px;
+  --text-body: 15px;
+  --text-callout: 13px;
+  --text-caption: 12px;
+  --text-lyrics: 28px;
+
   --color-background: #f1f1f1;
   --color-surface: #f6f6f6;
   --color-surface-elevated: #ffffff;

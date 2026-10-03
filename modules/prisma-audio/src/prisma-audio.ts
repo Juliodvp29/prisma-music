@@ -14,6 +14,7 @@ export interface NativeScannedTrack {
   readonly sizeBytes: number;
   readonly dateModified: number;
   readonly mimeType: string;
+  readonly folder: string | null;
 }
 
 export interface ScanProgressEvent {
