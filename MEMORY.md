@@ -7,7 +7,7 @@ instead of appending history. Update at the end of every ticket. Detailed scope 
 
 - **Project**: Prisma Music, personal local-file music player for Android, iOS later.
 - **Stack**: Angular 22 + Angular Native (alpha) on Expo dev build, TypeScript strict, Tailwind, Vitest, Kotlin Expo module for audio.
-- **Phase / ticket**: Phase 1.2 done. Next ticket: **T-107** (Phase 1.3).
+- **Phase / ticket**: Phase 1 done. Next ticket: **T-201** (Phase 2).
 - **Last updated**: 2026-10-03
 
 ## Done
@@ -15,6 +15,7 @@ instead of appending history. Update at the end of every ticket. Detailed scope 
 - Phase 0: bootstrap, tooling, structure with aliases and lazy stack routes, Tailwind tokens + ThemeService + Inter, CI with Gradle job, `prisma-audio` scaffold, spikes T-005/T-007.
 - Phase 1.1: media permission flow (`MediaAccessService` with granted/denied/permanently-denied states, `READ_MEDIA_AUDIO` / pre-33 `READ_EXTERNAL_STORAGE`, icons installed); native MediaStore scanner (batched, cancellable, throttled progress) behind `TrackSource`/`LocalTrackSource`; metadata via `MediaMetadataRetriever` + `MediaExtractor` (tags, duration, bitrate, sample rate, channels, mime, artwork downsampled to 512px JPEG in cache) via `LocalMetadataReader`. Only `core/` services import `prisma-audio`. `.gitattributes` enforces LF.
 - Phase 1.2: SQLite via `expo-sqlite` (`database()` + v1 migration: tracks/albums/artists/playlists/playlist_tracks/history/settings, UUID keys, `source` + generic `uri`); typed repositories (tracks, albums, artists, playlists, history, settings) tested against real SQL through a `node:sqlite` in-memory adapter; `ScanService` orchestrating permission gate, scan, add/change/remove diff, metadata and status signal, with scan UI (scan/progress/summary/cancel/retry) on the library page.
+- Phase 1.3: tab shell (`tabs-shell` with Biblioteca/Listas/Buscar/Ajustes, `withTabDefaults` theming, player/lyrics/equalizer as stack screens); virtualized songs list (fixed 64 rows, sort chips, A-Z rail via `scrollToIndex`); albums/artists/folders browse with detail screens (migration v2 `folder TEXT` from `RELATIVE_PATH`, null-folder backfill); debounced local search across the three tables with escaped LIKE. UI strings in Spanish (D-06).
 
 ## In progress
 
@@ -38,7 +39,8 @@ _None._
 - D-14 T-007 outcomes: scrubber/sheet via `Gesture.Pan` + `sharedValue` + `workletStyle` on the UI thread, `<gesture-root>` at the root, no `this` in worklet callbacks, gesture/reanimated entry-point imports (Node-safe), tests via `gestureOf` + callbacks. Library install (`react-native-gesture-handler`, `react-native-reanimated`, `react-native-worklets`) deferred to T-210/T-211 with a dev-build rebuild.
 - D-15 Permissions: `READ_MEDIA_AUDIO` (API 33+) with `READ_EXTERNAL_STORAGE` fallback below; runtime choice by `Platform.Version`. Icons (`NgIcon` + heroicons outline + `react-native-svg`) installed for empty states; `NgIcon` color bound to the theme accent (no token access in TS).
 - D-16 Scanning: `MediaScanner` reads `IS_MUSIC = 1` rows in ID order over `backgroundCoroutineScope` + IO, batching client-side while iterating (the MediaProvider rejects SQL clauses such as LIMIT in the sort order via strict-grammar enforcement); cursor columns resolve through `CursorColumns` keyed by mapper names (a wrong key silently defaulted every row once); `"<unknown>"` normalizes to the defaults; cancellation via `ScanSession` flag; progress events per batch; bit depth has no reliable Android API, so it is omitted until the Hi-Res path (T-407) needs it.
-- D-17 Persistence: `expo-sqlite` through the framework `database()` value; repos take a `Db` port (`LIBRARY_DB` thunk) so tests run real SQL on `node:sqlite` without the native module; UUIDs from the `Crypto` service (`SOURCE` overridden in tests); playlist membership allows repeats via surrogate keys.
+- D-17 Persistence: `expo-sqlite` through the framework `database()` value; repos take a `Db` port (`LIBRARY_DB` thunk) so tests run real SQL on `node:sqlite` without the native module; UUIDs from the `Crypto` service (`SOURCE` overridden in tests); playlist membership allows repeats via surrogate keys; `PRAGMA foreign_keys = ON` applied on every open so device and test enforcement match.
+- D-18 Browsing: tabs without icons for now (Android needs drawable resources); detail screens (`album/:id`, `artist/:id`, `folder/:key`) pushed over the tab bar; A-Z rail is visually compact (below the 48dp target, standard pattern); `VirtualList` in 0.1.1 has no `contentPadding` (footer spacer instead).
 
 ## Architecture (current)
 
@@ -47,8 +49,9 @@ src/app/
   core/             ThemeService; playback/NativeAudio (signals over prisma-audio);
                     library/ MediaAccessService, TrackSource/LocalTrackSource, TrackMetadata/LocalMetadataReader,
                     ScanService, schema + library-db (Db port), repositories/, test-db/test-services helpers
-  features/         library/ player/ playlists/ lyrics/ equalizer/ settings/ (library shows permission states; rest stubs, lazy routes)
-  shared/           ui/ utils/ models/ (scaffolded, empty)
+  features/         library/ (page with section chips, songs list, browse views, detail pages),
+                    tabs/ shell, search/ page, player/ playlists/ lyrics/ equalizer/ settings/ stubs
+  shared/           ui/ (track-row, collection-row), utils/ models/ (scaffolded, empty)
 modules/prisma-audio/   Name/Function/Events thin module + pure GreetingService; typed TS bridge
 ```
 
@@ -88,6 +91,6 @@ modules/prisma-audio/   Name/Function/Events thin module + pure GreetingService;
 
 ## Next steps
 
-1. T-107 tab shell (Library, Playlists, Search, Settings) with themed navigation.
-2. T-108 songs list with virtualization, sorting, and fast scroll.
-3. T-109 albums, artists, and folders views with detail screens.
+1. T-201 Media3 ExoPlayer in a foreground `MediaSessionService` (play, pause, seek).
+2. T-202 player state and position events bridged to signals (`PlaybackService`).
+3. T-203 native queue, repeat modes, next/previous semantics.

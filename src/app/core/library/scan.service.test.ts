@@ -24,6 +24,7 @@ function row(overrides: Partial<NativeScannedTrack>): NativeScannedTrack {
     sizeBytes: 4096,
     dateModified: 1700000000,
     mimeType: 'audio/mpeg',
+    folder: 'Music/',
     ...overrides,
   };
 }
@@ -140,6 +141,7 @@ const STORED: NewTrack = {
   sampleRate: null,
   channels: null,
   artworkPath: null,
+  folder: null,
 };
 
 test('inserts scanned tracks with artists, albums and metadata', async () => {
@@ -196,6 +198,31 @@ test('detects added, changed and removed tracks', async () => {
     updated: 1,
     removed: 1,
     total: 2,
+  });
+  await close();
+});
+
+test('backfills folders onto rows scanned before folders existed', async () => {
+  const close = await renderScanner({
+    answer: GRANTED,
+    rows: [row({ deviceId: 5, uri: 'content://five', folder: 'Music/' })],
+  });
+  await tracks.upsertTrack({
+    ...STORED,
+    deviceId: '5',
+    uri: 'content://five',
+    dateModified: 1700000000,
+    sizeBytes: 4096,
+  });
+
+  await scanner.scan();
+
+  expect(scanner.state()).toEqual({
+    state: 'done',
+    added: 0,
+    updated: 1,
+    removed: 0,
+    total: 1,
   });
   await close();
 });

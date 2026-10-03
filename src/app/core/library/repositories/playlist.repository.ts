@@ -131,7 +131,7 @@ export class PlaylistRepository {
         t.duration_ms AS durationMs, t.size_bytes AS sizeBytes,
         t.date_modified AS dateModified, t.mime, t.bitrate,
         t.sample_rate AS sampleRate, t.channels, t.artwork_path AS artworkPath,
-        pt.position AS position
+        t.folder, pt.position AS position
         FROM playlist_tracks pt JOIN tracks t ON t.id = pt.track_id
         WHERE pt.playlist_id = ? ORDER BY pt.position`,
       playlistId,

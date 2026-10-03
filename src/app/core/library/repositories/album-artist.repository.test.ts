@@ -54,5 +54,8 @@ test('upserts albums by device id and artists by name', async () => {
   expect((await artists.listArtists()).map((row) => row.name)).toEqual([
     'Artist',
   ]);
+  expect(
+    (await albums.listAlbumsByArtist('Artist')).map((row) => row.title),
+  ).toEqual(['Renamed']);
   await close();
 });

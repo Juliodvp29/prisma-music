@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Crypto } from '@ng-native/expo/crypto';
 import { LIBRARY_DB } from '../library-db.ts';
+import { likePattern } from './search-utils.ts';
 
 export interface AlbumRow {
   readonly id: string;
@@ -74,6 +75,30 @@ export class AlbumRepository {
     return db.getFirstAsync<AlbumRow>(
       'SELECT id, source, source_id AS sourceId, title, artist, artwork_path AS artworkPath FROM albums WHERE id = ?',
       id,
+    );
+  }
+
+  async listAlbumsByArtist(artist: string): Promise<readonly AlbumRow[]> {
+    const db = await this.openDb();
+    return db.getAllAsync<AlbumRow>(
+      'SELECT id, source, source_id AS sourceId, title, artist, artwork_path AS artworkPath FROM albums WHERE artist = ? ORDER BY title COLLATE NOCASE',
+      artist,
+    );
+  }
+
+  async searchAlbums(
+    query: string,
+    limit: number,
+  ): Promise<readonly AlbumRow[]> {
+    const db = await this.openDb();
+    const pattern = likePattern(query);
+    return db.getAllAsync<AlbumRow>(
+      `SELECT id, source, source_id AS sourceId, title, artist, artwork_path AS artworkPath
+        FROM albums WHERE title LIKE ? ESCAPE '\\' OR artist LIKE ? ESCAPE '\\'
+        ORDER BY title COLLATE NOCASE LIMIT ?`,
+      pattern,
+      pattern,
+      limit,
     );
   }
 }

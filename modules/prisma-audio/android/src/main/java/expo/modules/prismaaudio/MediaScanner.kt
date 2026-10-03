@@ -40,6 +40,7 @@ object CursorColumns {
     "size" to getColumnIndex(MediaStore.Audio.Media.SIZE),
     "dateModified" to getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED),
     "mimeType" to getColumnIndex(MediaStore.Audio.Media.MIME_TYPE),
+    "folder" to getColumnIndex(MediaStore.Audio.Media.RELATIVE_PATH),
   )
 }
 
@@ -62,6 +63,7 @@ class MediaScanner(private val resolver: ContentResolver) {
     MediaStore.Audio.Media.SIZE,
     MediaStore.Audio.Media.DATE_MODIFIED,
     MediaStore.Audio.Media.MIME_TYPE,
+    MediaStore.Audio.Media.RELATIVE_PATH,
   )
 
   fun count(): Int {

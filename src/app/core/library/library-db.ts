@@ -17,5 +17,9 @@ export const libraryDb = database('prisma-music.db', migrations);
 
 /** Opens the library database (migrating first) and hands out one shared connection. */
 export const LIBRARY_DB = new InjectionToken<() => Promise<Db>>('Library.db', {
-  factory: () => () => libraryDb.ready(),
+  factory: () => async () => {
+    const db = await libraryDb.ready();
+    await db.execAsync('PRAGMA foreign_keys = ON');
+    return db;
+  },
 });

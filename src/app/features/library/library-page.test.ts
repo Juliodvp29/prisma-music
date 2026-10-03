@@ -22,6 +22,7 @@ function fakeNative(): NativePrismaAudio {
         sizeBytes: 4096,
         dateModified: 1700000000,
         mimeType: 'audio/mpeg',
+        folder: 'Music/',
       },
     ],
     cancelScan: () => {},

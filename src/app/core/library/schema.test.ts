@@ -18,5 +18,10 @@ test('v1 creates every table', async () => {
     'settings',
     'tracks',
   ]);
+
+  const columns = await db.getAllAsync<{ name: string }>(
+    'PRAGMA table_info(tracks)',
+  );
+  expect(columns.map((column) => column.name)).toContain('folder');
   await close();
 });

@@ -18,6 +18,7 @@ class AudioRowMapperTest {
       "size" to 4096L,
       "dateModified" to 1700000000L,
       "mimeType" to "audio/mpeg",
+      "folder" to "Music/",
     )
 
     val track = AudioRowMapper.map { row[it] }
@@ -38,6 +39,7 @@ class AudioRowMapperTest {
       "sizeBytes" to 4096L,
       "dateModified" to 1700000000L,
       "mimeType" to "audio/mpeg",
+      "folder" to "Music/",
     ), track.toMap())
   }
 
@@ -81,6 +83,7 @@ class CursorColumnsTest {
       "_size",
       "date_modified",
       "mime_type",
+      "relative_path",
     )
 
     val index = CursorColumns.indexOf { names.indexOf(it) }
@@ -97,10 +100,11 @@ class CursorColumnsTest {
         "size",
         "dateModified",
         "mimeType",
+        "folder",
       ),
       index.keys,
     )
-    assertEquals((0..9).toSet(), index.values.toSet())
+    assertEquals((0..10).toSet(), index.values.toSet())
   }
 }
 

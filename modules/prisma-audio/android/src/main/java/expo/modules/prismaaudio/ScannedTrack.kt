@@ -12,8 +12,9 @@ data class ScannedTrack(
   val sizeBytes: Long,
   val dateModified: Long,
   val mimeType: String,
+  val folder: String?,
 ) {
-  fun toMap(): Map<String, Any> = mapOf(
+  fun toMap(): Map<String, Any?> = mapOf(
     "deviceId" to deviceId,
     "uri" to uri,
     "displayName" to displayName,
@@ -25,6 +26,7 @@ data class ScannedTrack(
     "sizeBytes" to sizeBytes,
     "dateModified" to dateModified,
     "mimeType" to mimeType,
+    "folder" to folder,
   )
 }
 
@@ -50,6 +52,7 @@ object AudioRowMapper {
       sizeBytes = (get("size") as? Number)?.toLong() ?: 0L,
       dateModified = (get("dateModified") as? Number)?.toLong() ?: 0L,
       mimeType = get("mimeType") as? String ?: "",
+      folder = get("folder") as? String,
     )
   }
 

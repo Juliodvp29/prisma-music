@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Crypto } from '@ng-native/expo/crypto';
 import { LIBRARY_DB } from '../library-db.ts';
+import { likePattern } from './search-utils.ts';
 
 export interface ArtistRow {
   readonly id: string;
@@ -38,6 +39,19 @@ export class ArtistRepository {
     return db.getFirstAsync<ArtistRow>(
       'SELECT id, name FROM artists WHERE id = ?',
       id,
+    );
+  }
+
+  async searchArtists(
+    query: string,
+    limit: number,
+  ): Promise<readonly ArtistRow[]> {
+    const db = await this.openDb();
+    return db.getAllAsync<ArtistRow>(
+      `SELECT id, name FROM artists WHERE name LIKE ? ESCAPE '\\'
+        ORDER BY name COLLATE NOCASE LIMIT ?`,
+      likePattern(query),
+      limit,
     );
   }
 }

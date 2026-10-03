@@ -103,7 +103,8 @@ export class ScanService {
         added += 1;
       } else if (
         previous.dateModified !== row.dateModified ||
-        previous.sizeBytes !== row.sizeBytes
+        previous.sizeBytes !== row.sizeBytes ||
+        (previous.folder === null && row.folder !== null)
       ) {
         await this.insertRow(source, row);
         updated += 1;
@@ -153,6 +154,7 @@ export class ScanService {
       sampleRate: metadata?.sampleRate ?? null,
       channels: metadata?.channelCount ?? null,
       artworkPath: metadata?.artworkPath ?? null,
+      folder: row.folder,
     });
   }
 }

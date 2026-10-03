@@ -38,10 +38,10 @@ Every ticket implicitly includes: tests, typecheck/lint clean, no dropped-CSS wa
 - [x] **T-106** Incremental rescan (add, change, remove detection) and scan status UI. Deps: T-103, T-105
 
 ### 1.3 Browsing UI
-- [ ] **T-107** Tab shell (Library, Playlists, Search, Settings) with themed navigation. Deps: T-004
-- [ ] **T-108** Songs list with virtualization, sorting, and fast scroll. Deps: T-105, T-107
-- [ ] **T-109** Albums, artists, and folders views with detail screens. Deps: T-108
-- [ ] **T-110** Search across tracks, albums, artists (debounced, local). Deps: T-109
+- [x] **T-107** Tab shell (Library, Playlists, Search, Settings) with themed navigation. Deps: T-004
+- [x] **T-108** Songs list with virtualization, sorting, and fast scroll. Deps: T-105, T-107
+- [x] **T-109** Albums, artists, and folders views with detail screens. Deps: T-108
+- [x] **T-110** Search across tracks, albums, artists (debounced, local). Deps: T-109
 
 ---
 

@@ -28,6 +28,7 @@ const TRACK: NewTrack = {
   sampleRate: null,
   channels: null,
   artworkPath: null,
+  folder: null,
 };
 
 let tracks: TrackRepository;

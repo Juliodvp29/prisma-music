@@ -73,4 +73,8 @@ CREATE TABLE settings (
 
 export const migrations: readonly Migration[] = [
   { to: 1, up: (db) => db.execAsync(v1) },
+  {
+    to: 2,
+    up: (db) => db.execAsync('ALTER TABLE tracks ADD COLUMN folder TEXT'),
+  },
 ];

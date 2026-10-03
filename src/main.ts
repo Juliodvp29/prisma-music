@@ -10,7 +10,7 @@ import {
   getFabricUIManager,
   registerPlatformComponents,
 } from '@ng-native/fabric';
-import { provideNativeRouter } from '@ng-native/router';
+import { provideNativeRouter, withTabDefaults } from '@ng-native/router';
 import { loadAsync as loadFontAssets } from 'expo-font';
 import tailwind from '../.angular-native/app.tailwind.js';
 import { routes } from './app/app.routes.ts';
@@ -35,7 +35,18 @@ AppRegistry.registerRunnable(
       });
       /* eslint-enable @typescript-eslint/no-require-imports */
       const app = mount(Number(rootTag), App, getFabricUIManager(), {
-        providers: [provideNativeRouter(routes, withComponentInputBinding())],
+        providers: [
+          provideNativeRouter(
+            routes,
+            withComponentInputBinding(),
+            // Bar props cannot read the cascade, so the DESIGN.md
+            // surface and accent tokens live here as well.
+            withTabDefaults((scheme) => ({
+              tintColor: scheme === 'dark' ? '#EBDDC8' : '#192028',
+              backgroundColor: scheme === 'dark' ? '#141A20' : '#F6F6F6',
+            })),
+          ),
+        ],
         // Utility classes from `src/styles.css`, matched against every node.
         globalStyles: tailwind,
         // Colours, as the integers the platform wants.
